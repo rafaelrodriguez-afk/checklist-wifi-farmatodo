@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Checklist Visita WiFi — Farmatodo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:#0057a8;--blue2:#003d7a;--blue3:#cce3f7;
+    --green:#00963a;--green2:#e6f5ed;
+    --red:#d93025;--red2:#fdecea;
+    --warn:#e8860a;--warn2:#fff4e5;
+    --ink:#101c2c;--ink2:#3d5166;--ink3:#7a90a8;
+    --line:#dde6f0;--bg:#f4f7fb;--white:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.5}
+
+  /* HEADER */
+  .page-header{background:var(--blue2);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  .logo-text{font-size:17px;font-weight:700;color:#fff;letter-spacing:.5px}
+  .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px}
+  .doc-title{font-size:11px;color:rgba(255,255,255,.6);margin-top:1px}
+  .hdr-btns{display:flex;gap:8px}
+  .hdr-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:6px 12px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
+  .hdr-btn:hover{background:rgba(255,255,255,.28)}
+  .hdr-btn.cfg{background:rgba(255,193,7,.2);border-color:rgba(255,193,7,.4);color:#ffd54f}
+
+  /* SETUP BANNER */
+  .setup-banner{background:linear-gradient(135deg,#7a5400,var(--warn));color:#fff;padding:14px 20px;display:flex;align-items:flex-start;gap:14px;cursor:pointer}
+  .setup-banner.hidden{display:none}
+  .setup-icon{font-size:26px;flex-shrink:0}
+  .setup-text h4{font-size:14px;font-weight:700;margin-bottom:3px}
+  .setup-text p{font-size:12px;opacity:.9}
+  .setup-badge{background:rgba(255,255,255,.25);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;margin-top:6px;display:inline-block}
+  .setup-badge.ok{background:rgba(0,150,58,.3);color:#a8ffca}
+
+  /* CONFIG MODAL */
+  .cfg-overlay{position:fixed;inset:0;background:rgba(0,20,50,.55);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .2s}
+  .cfg-overlay.open{opacity:1;pointer-events:all}
+  .cfg-box{background:#fff;border-radius:16px;width:min(540px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,30,70,.3);transform:scale(.95);transition:transform .2s}
+  .cfg-overlay.open .cfg-box{transform:scale(1)}
+  .cfg-hdr{background:var(--blue2);padding:18px 22px;border-radius:16px 16px 0 0;display:flex;align-items:flex-start;justify-content:space-between}
+  .cfg-hdr h2{font-size:16px;font-weight:700;color:#fff}
+  .cfg-hdr p{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px}
+  .cfg-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+  .cfg-body{padding:22px}
+  .cfg-step{display:flex;gap:14px;margin-bottom:18px;align-items:flex-start}
+  .cfg-n{width:28px;height:28px;border-radius:8px;background:var(--blue3);color:var(--blue);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace}
+  .cfg-step-text h4{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px}
+  .cfg-step-text p{font-size:12px;color:var(--ink3);line-height:1.6}
+  .cfg-step-text code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--blue)}
+  .cfg-field{margin-top:10px}
+  .cfg-field label{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px}
+  .cfg-field input{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;color:var(--ink);background:var(--bg);outline:none;transition:border-color .15s}
+  .cfg-field input:focus{border-color:var(--blue);background:#fff}
+  .cfg-field input.ok{border-color:var(--green);background:var(--green2)}
+  .cfg-save{width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--blue2));border:none;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s}
+  .cfg-save:hover{opacity:.9}
+  .cfg-divider{height:1px;background:var(--line);margin:18px 0}
+  .cfg-copy-box{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--ink2);cursor:pointer;word-break:break-all;position:relative}
+  .cfg-copy-box::after{content:'📋 Copiar';position:absolute;top:6px;right:8px;font-size:10px;color:var(--blue);font-family:'DM Sans',monospace;font-weight:700}
+  .cfg-copy-box.copied::after{content:'✓ Copiado!';color:var(--green)}
+
+  /* STORE META */
+  .store-meta{background:#fff;border-bottom:2px solid var(--line);padding:14px 20px}
+  .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .meta-field label{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:4px}
+  .meta-field input,.meta-field select{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:8px 12px;font-family:inherit;font-size:14px;color:var(--ink);background:var(--bg);outline:none;transition:border-color .15s}
+  .meta-field input:focus,.meta-field select:focus{border-color:var(--blue);background:#fff}
+
+  /* PROGRESS */
+  .progress-wrap{background:#fff;border-bottom:1px solid var(--line);padding:10px 20px}
+  .progress-label{font-size:11px;color:var(--ink3);font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between}
+  .progress-track{background:var(--line);border-radius:20px;height:6px;overflow:hidden}
+  .progress-fill{background:linear-gradient(90deg,var(--blue),var(--green));border-radius:20px;height:100%;width:0%;transition:width .5s ease}
+
+  /* CONTENT */
+  .content{padding:16px 20px;max-width:680px;margin:0 auto}
+
+  /* STEP */
+  .step{background:#fff;border:1.5px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+  .step.done{border-color:var(--green);box-shadow:0 2px 12px rgba(0,150,58,.1)}
+  .step-header{display:flex;align-items:flex-start;gap:14px;padding:16px 18px;cursor:pointer;user-select:none}
+  .step-num{width:34px;height:34px;border-radius:10px;flex-shrink:0;background:var(--blue3);color:var(--blue);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s;font-family:'DM Mono',monospace}
+  .step.done .step-num{background:var(--green);color:#fff}
+  .step-title-wrap{flex:1}
+  .step-title{font-size:15px;font-weight:700;color:var(--ink)}
+  .step-role{font-size:11px;font-weight:600;padding:1px 8px;border-radius:20px;margin-left:6px;vertical-align:middle}
+  .role-field{background:#e3f5ec;color:var(--green)}
+  .role-both{background:var(--blue3);color:var(--blue)}
+  .role-spec{background:var(--warn2);color:var(--warn)}
+  .step-subtitle{font-size:12px;color:var(--ink3);margin-top:2px}
+  .step-chevron{font-size:16px;color:var(--ink3);flex-shrink:0;margin-top:2px;transition:transform .2s}
+  .step.open .step-chevron{transform:rotate(90deg)}
+  .step-body{display:none;padding:0 18px 18px}
+  .step.open .step-body{display:block}
+
+  /* Q BLOCK */
+  .q-block{background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:12px;border-left:4px solid var(--blue)}
+  .q-block.q-warn{border-left-color:var(--warn)}
+  .q-block.q-grey{border-left-color:var(--ink3)}
+  .q-label{font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+  .q-block.q-warn .q-label{color:var(--warn)}
+  .q-block.q-grey .q-label{color:var(--ink3)}
+  .q-text{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:8px;line-height:1.4}
+  .q-hint{font-size:11px;color:var(--ink3);margin-bottom:10px;line-height:1.6;font-style:italic}
+
+  /* OPTIONS */
+  .options{display:flex;flex-direction:column;gap:6px}
+  .option{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:1.5px solid var(--line);background:#fff;cursor:pointer;transition:all .15s;font-size:13px;font-weight:500}
+  .option:hover{border-color:var(--blue);background:var(--blue3)}
+  .option.selected{border-color:var(--blue);background:var(--blue3);color:var(--blue);font-weight:600}
+  .option.sel-red{border-color:var(--red);background:var(--red2);color:var(--red)}
+  .option.sel-green{border-color:var(--green);background:var(--green2);color:var(--green)}
+  .option.sel-warn{border-color:var(--warn);background:var(--warn2);color:var(--warn)}
+  .opt-icon{font-size:16px;flex-shrink:0}
+  .opt-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--line);background:#fff;flex-shrink:0;margin-left:auto;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .15s}
+  .option.selected .opt-check,.option.sel-red .opt-check,.option.sel-green .opt-check,.option.sel-warn .opt-check{border-color:currentColor;background:currentColor;color:#fff}
+  .opt-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);background:#fff;flex-shrink:0;margin-left:auto;display:flex;align-items:center;justify-content:center;transition:all .15s}
+  .opt-radio::after{content:'';width:8px;height:8px;border-radius:50%;background:transparent;transition:background .15s}
+  .option.sel-single .opt-radio{border-color:var(--blue)}
+  .option.sel-single .opt-radio::after{background:var(--blue)}
+
+  /* SIGNAL */
+  .signal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .sig-zone{border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
+  .sig-name{font-size:12px;font-weight:700;margin-bottom:6px;color:var(--ink)}
+  .sig-btns{display:flex;gap:4px}
+  .sig-btn{flex:1;padding:5px 0;border-radius:6px;border:1.5px solid var(--line);font-size:10px;font-weight:700;cursor:pointer;text-align:center;background:#fff;font-family:inherit;transition:all .15s;color:var(--ink2)}
+  .sig-btn.ok{background:var(--green2);border-color:var(--green);color:var(--green)}
+  .sig-btn.warn{background:var(--warn2);border-color:var(--warn);color:var(--warn)}
+  .sig-btn.bad{background:var(--red2);border-color:var(--red);color:var(--red)}
+
+  /* TEXTAREA */
+  .field-note{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:13px;color:var(--ink);background:#fff;outline:none;resize:none;transition:border-color .15s;min-height:70px}
+  .field-note:focus{border-color:var(--blue)}
+  .field-note::placeholder{color:var(--ink3)}
+
+  /* DIVIDER */
+  .divider{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px;margin:12px 0 8px;display:flex;align-items:center;gap:8px}
+  .divider::after{content:'';flex:1;height:1px;background:var(--line)}
+
+  /* CONCLUSION */
+  .conclusion{background:linear-gradient(135deg,var(--blue2) 0%,#005ba5 100%);border-radius:14px;padding:20px;margin-bottom:12px;color:#fff}
+  .conclusion h3{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .concl-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .concl-field label{font-size:10px;font-weight:700;opacity:.65;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:4px}
+  .concl-field select,.concl-field input{width:100%;border:1.5px solid rgba(255,255,255,.25);border-radius:8px;padding:8px 12px;font-family:inherit;font-size:13px;color:var(--ink);background:rgba(255,255,255,.92);outline:none}
+  .concl-full{grid-column:1/-1}
+  .ap-rec{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:10px;padding:14px;margin-top:12px}
+  .ap-rec label{font-size:10px;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:block}
+  .ap-choice-row{display:flex;gap:8px}
+  .ap-choice{flex:1;padding:10px 6px;border-radius:8px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);text-align:center;cursor:pointer;font-family:inherit;color:#fff;font-size:12px;font-weight:700;transition:all .15s}
+  .ap-choice:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.5)}
+  .ap-choice.active{background:#fff;color:var(--blue2);border-color:#fff}
+  .ap-choice .ap-n{font-size:26px;font-family:'DM Mono',monospace;line-height:1;display:block}
+  .ap-choice .ap-l{font-size:10px;opacity:.75;margin-top:3px;display:block}
+  .ap-choice.active .ap-l{opacity:.6}
+  .ap-location-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+  .ap-loc-row{display:flex;gap:8px;align-items:center}
+  .ap-loc-badge{background:rgba(255,255,255,.2);border-radius:6px;padding:3px 10px;font-size:12px;font-weight:700;white-space:nowrap}
+  .ap-loc-input{flex:1;border:1.5px solid rgba(255,255,255,.25);border-radius:8px;padding:7px 10px;font-family:inherit;font-size:13px;color:var(--ink);background:rgba(255,255,255,.92);outline:none}
+
+  /* SUBMIT */
+  .submit-btn{width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--blue2));border:none;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s;box-shadow:0 4px 16px rgba(0,87,168,.25);margin-bottom:24px}
+  .submit-btn:hover{opacity:.9}
+  .submit-btn.green-btn{background:linear-gradient(135deg,var(--green),#007a30)}
+
+  /* SEND STATUS */
+  .send-status{border-radius:12px;padding:16px 18px;margin-bottom:16px;display:none;font-size:13px;font-weight:600}
+  .send-status.sending{background:var(--blue3);color:var(--blue);border:1.5px solid var(--blue);display:flex;align-items:center;gap:10px}
+  .send-status.success{background:var(--green2);color:var(--green);border:1.5px solid var(--green);display:flex;align-items:center;gap:10px}
+  .send-status.error{background:var(--red2);color:var(--red);border:1.5px solid var(--red);display:flex;align-items:center;gap:10px}
+  .spin{animation:spin 1s linear infinite;display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* RESULT */
+  .result-card{display:none;background:#fff;border:2px solid var(--green);border-radius:14px;padding:20px;margin-bottom:24px;box-shadow:0 4px 16px rgba(0,150,58,.12)}
+  .result-card.show{display:block}
+  .result-card h3{font-size:15px;font-weight:700;color:var(--green);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .result-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px;gap:12px}
+  .result-row:last-child{border:none}
+  .result-row .rl{color:var(--ink3);font-weight:500;white-space:nowrap}
+  .result-row .rv{font-weight:700;color:var(--ink);text-align:right}
+  .sheet-link{display:inline-flex;align-items:center;gap:6px;background:var(--green2);color:var(--green);border:1.5px solid var(--green);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;text-decoration:none;margin-top:12px;transition:opacity .15s}
+  .sheet-link:hover{opacity:.8}
+
+  @media print{
+    body{background:#fff;font-size:12px}
+    .page-header{background:#003d7a !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .hdr-btns,.setup-banner,.progress-wrap,.submit-btn,.send-status,.cfg-overlay{display:none !important}
+    .step,.step-body{page-break-inside:avoid}
+    .step-body{display:block !important}
+    .step-chevron{display:none}
+    .content{padding:8px;max-width:100%}
+    .conclusion{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+  @media(max-width:480px){
+    .meta-grid,.concl-grid,.signal-grid,.ap-choice-row{grid-template-columns:1fr}
+    .ap-choice-row{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="page-header">
+  <div>
+    <div class="logo-text"><span class="logo-dot"></span>FARMATODO</div>
+    <div class="doc-title">Checklist Visita WiFi · Telecomunicaciones × Operaciones</div>
+  </div>
+  <div class="hdr-btns">
+    <button class="hdr-btn cfg" onclick="openCfg()">⚙️ Configurar Sheets</button>
+    <button class="hdr-btn" onclick="window.print()">🖨️ Imprimir</button>
+  </div>
+</div>
+
+<!-- SETUP BANNER -->
+<div class="setup-banner" id="setup-banner" onclick="openCfg()">
+  <div class="setup-icon">⚠️</div>
+  <div class="setup-text">
+    <h4>Conectar con Google Sheets para guardar respuestas</h4>
+    <p>Las visitas se guardan solo localmente. Toca aquí para configurar el envío automático a tu hoja de cálculo.</p>
+    <span class="setup-badge" id="setup-badge">Sin configurar — toca para configurar</span>
+  </div>
+</div>
+
+<!-- CONFIG MODAL -->
+<div class="cfg-overlay" id="cfg-overlay" onclick="closeCfgOut(event)">
+  <div class="cfg-box">
+    <div class="cfg-hdr">
+      <div>
+        <h2>⚙️ Conectar con Google Sheets</h2>
+        <p>Sigue estos 4 pasos — solo se hace una vez</p>
+      </div>
+      <button class="cfg-close" onclick="closeCfg()">✕</button>
+    </div>
+    <div class="cfg-body">
+
+      <div class="cfg-step">
+        <div class="cfg-n">1</div>
+        <div class="cfg-step-text">
+          <h4>Crear una Google Sheet nueva</h4>
+          <p>Ve a <a href="https://sheets.new" target="_blank" style="color:var(--blue);font-weight:600">sheets.new</a> y crea una hoja en blanco. El script creará los encabezados automáticamente.</p>
+        </div>
+      </div>
+
+      <div class="cfg-step">
+        <div class="cfg-n">2</div>
+        <div class="cfg-step-text">
+          <h4>Abrir el editor de Apps Script</h4>
+          <p>En la Sheet: menú <code>Extensiones</code> → <code>Apps Script</code>. Borra el código de ejemplo y pega el código del archivo <strong>apps_script_farmatodo.gs</strong> que te entregué.</p>
+        </div>
+      </div>
+
+      <div class="cfg-step">
+        <div class="cfg-n">3</div>
+        <div class="cfg-step-text">
+          <h4>Implementar como aplicación web</h4>
+          <p>Clic en <code>Implementar</code> → <code>Nueva implementación</code> → Tipo: <code>Aplicación web</code> → <em>Ejecutar como:</em> <strong>Yo</strong> → <em>Acceso:</em> <strong>Cualquier persona</strong> → <code>Implementar</code> y autoriza.</p>
+        </div>
+      </div>
+
+      <div class="cfg-step">
+        <div class="cfg-n">4</div>
+        <div class="cfg-step-text">
+          <h4>Pegar la URL del Web App aquí abajo</h4>
+          <p>Copia la URL que termina en <code>/exec</code> y pégala en el campo de abajo.</p>
+          <div class="cfg-field" style="margin-top:10px">
+            <label>URL del Web App de Google Apps Script</label>
+            <input type="text" id="sheet-url-input" placeholder="https://script.google.com/macros/s/…/exec" oninput="validateUrl(this)">
+          </div>
+          <div class="cfg-field" style="margin-top:10px">
+            <label>URL de la Google Sheet (para abrir desde el resumen)</label>
+            <input type="text" id="sheet-view-input" placeholder="https://docs.google.com/spreadsheets/d/…">
+          </div>
+        </div>
+      </div>
+
+      <div class="cfg-divider"></div>
+
+      <div style="font-size:12px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Código del Apps Script (para copiar)</div>
+      <div class="cfg-copy-box" id="gs-code-box" onclick="copyCfgCode()">
+        Ver archivo apps_script_farmatodo.gs adjunto en los archivos entregados. Contiene el código completo para pegar en Google Apps Script.
+      </div>
+
+      <button class="cfg-save" onclick="saveCfg()">💾 Guardar configuración</button>
+    </div>
+  </div>
+</div>
+
+<!-- STORE META -->
+<div class="store-meta">
+  <div class="meta-grid">
+    <div class="meta-field"><label>Tienda</label><input type="text" id="m-tienda" placeholder="Ej: Galerías, NOGAL…"></div>
+    <div class="meta-field"><label>Código</label><input type="text" id="m-codigo" placeholder="Ej: 1027"></div>
+    <div class="meta-field"><label>Técnico de campo</label><input type="text" id="m-tecnico" placeholder="Nombre del técnico"></div>
+    <div class="meta-field"><label>Especialista Telecomunicaciones</label><input type="text" id="m-esp" placeholder="Nombre del especialista"></div>
+    <div class="meta-field"><label>Fecha de visita</label><input type="date" id="m-fecha"></div>
+    <div class="meta-field"><label>Gerente de tienda</label><input type="text" id="m-gerente" placeholder="Nombre del gerente"></div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label"><span>Progreso del checklist</span><span id="prog-txt">0 / 5 pasos completados</span></div>
+  <div class="progress-track"><div class="progress-fill" id="prog-bar"></div></div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- PASO 1 -->
+<div class="step open" id="step1">
+  <div class="step-header" onclick="toggleStep('step1')">
+    <div class="step-num" id="num1">1</div>
+    <div class="step-title-wrap">
+      <div class="step-title">Entrevista al Gerente <span class="step-role role-field">Campo</span></div>
+      <div class="step-subtitle">2 preguntas clave · ~5 min</div>
+    </div>
+    <div class="step-chevron">›</div>
+  </div>
+  <div class="step-body">
+    <div class="q-block">
+      <div class="q-label">💬 Pregunta 1 — HandHeld</div>
+      <div class="q-text">¿Dónde fallan más las HandHeld o se desconectan?</div>
+      <div class="q-hint">Marcar todos los lugares que mencione. Si el camión de Cendis se estaciona afuera, la señal normalmente no alcanza a salir de la tienda.</div>
+      <div class="options" id="q1-opts">
+        <label class="option" onclick="toggle(this,'q1')"><span class="opt-icon">🏭</span>Bodega / Depósito<span class="opt-check">✓</span></label>
+        <label class="option" onclick="toggle(this,'q1')"><span class="opt-icon">🚛</span>Recepción Cendis / Rampa de descarga (fuera o semafuera)<span class="opt-check">✓</span></label>
+        <label class="option" onclick="toggle(this,'q1')"><span class="opt-icon">💊</span>Zona de Farmacia<span class="opt-check">✓</span></label>
+        <label class="option" onclick="toggle(this,'q1')"><span class="opt-icon">🛒</span>Algún pasillo de piso de ventas<span class="opt-check">✓</span></label>
+        <label class="option" onclick="toggle(this,'q1')"><span class="opt-icon">🖥️</span>Oficina / 2do piso<span class="opt-check">✓</span></label>
+        <label class="option" onclick="toggle(this,'q1')"><span class="opt-icon">✅</span>No tienen problemas con HH<span class="opt-check">✓</span></label>
+      </div>
+      <div class="divider" style="margin-top:12px">Detalle adicional</div>
+      <textarea class="field-note" id="q1-nota" placeholder="Ej: 'Las HH fallan especialmente cuando el camión está en el patio trasero…'"></textarea>
+    </div>
+    <div class="q-block q-warn">
+      <div class="q-label">💬 Pregunta 2 — Cajas y Autopagos</div>
+      <div class="q-text">¿Cómo se comportan los autopagos y cajas? ¿Cómo sienten el internet?</div>
+      <div class="q-hint">Preguntar: ¿se ponen fuera de línea? ¿a qué hora del día es peor? ¿las transacciones quedan colgadas?</div>
+      <div class="options" id="q2-opts">
+        <label class="option" onclick="selectOne(this,'q2','sel-red')"><span class="opt-icon">🔴</span>Se ponen fuera de línea seguido (diario o casi diario)<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'q2','sel-warn')"><span class="opt-icon">🟡</span>Fallan algunas veces a la semana o en horas pico<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'q2','sel-warn')"><span class="opt-icon">🟡</span>Transacciones lentas pero no se cortan<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'q2','sel-green')"><span class="opt-icon">🟢</span>Funcionan bien, sin quejas frecuentes<span class="opt-radio"></span></label>
+      </div>
+      <div class="divider" style="margin-top:12px">¿A qué hora del día es peor?</div>
+      <div class="options" id="q2b-opts" style="flex-direction:row;flex-wrap:wrap">
+        <label class="option" style="flex:1;min-width:110px" onclick="toggle(this,'q2b')"><span class="opt-icon">🌅</span>Mañana<span class="opt-check">✓</span></label>
+        <label class="option" style="flex:1;min-width:110px" onclick="toggle(this,'q2b')"><span class="opt-icon">☀️</span>Mediodía<span class="opt-check">✓</span></label>
+        <label class="option" style="flex:1;min-width:110px" onclick="toggle(this,'q2b')"><span class="opt-icon">🌤️</span>Tarde<span class="opt-check">✓</span></label>
+        <label class="option" style="flex:1;min-width:110px" onclick="toggle(this,'q2b')"><span class="opt-icon">🌙</span>Noche<span class="opt-check">✓</span></label>
+      </div>
+    </div>
+    <button class="submit-btn" style="margin-bottom:0;font-size:13px;padding:10px" onclick="markDone('step1','num1')">✓ Confirmar respuestas del gerente</button>
+  </div>
+</div>
+
+<!-- PASO 2 -->
+<div class="step" id="step2">
+  <div class="step-header" onclick="toggleStep('step2')">
+    <div class="step-num" id="num2">2</div>
+    <div class="step-title-wrap">
+      <div class="step-title">Recorrido físico de la tienda <span class="step-role role-field">Campo</span></div>
+      <div class="step-subtitle">Medir señal con celular · 10–15 min</div>
+    </div>
+    <div class="step-chevron">›</div>
+  </div>
+  <div class="step-body">
+    <div class="q-block">
+      <div class="q-label">📶 Medición de señal por zona</div>
+      <div class="q-text">Calificar señal WiFi en cada zona</div>
+      <div class="q-hint">Usar WiFi Analyzer (Android). Referencia: <strong>Verde ≥ -65 dBm</strong> · <strong>Amarillo -66 a -75 dBm</strong> · <strong>Rojo &lt; -75 dBm</strong></div>
+      <div class="signal-grid">
+        <div class="sig-zone"><div class="sig-name">🛒 Piso de ventas</div><div class="sig-btns" id="sig-piso"><button class="sig-btn" onclick="setSig(this,'ok','sig-piso')">✓ OK</button><button class="sig-btn" onclick="setSig(this,'warn','sig-piso')">⚠ Débil</button><button class="sig-btn" onclick="setSig(this,'bad','sig-piso')">✗ Sin señal</button></div></div>
+        <div class="sig-zone"><div class="sig-name">🏭 Bodega / Depósito</div><div class="sig-btns" id="sig-bodega"><button class="sig-btn" onclick="setSig(this,'ok','sig-bodega')">✓ OK</button><button class="sig-btn" onclick="setSig(this,'warn','sig-bodega')">⚠ Débil</button><button class="sig-btn" onclick="setSig(this,'bad','sig-bodega')">✗ Sin señal</button></div></div>
+        <div class="sig-zone"><div class="sig-name">💊 Farmacia</div><div class="sig-btns" id="sig-farmacia"><button class="sig-btn" onclick="setSig(this,'ok','sig-farmacia')">✓ OK</button><button class="sig-btn" onclick="setSig(this,'warn','sig-farmacia')">⚠ Débil</button><button class="sig-btn" onclick="setSig(this,'bad','sig-farmacia')">✗ Sin señal</button></div></div>
+        <div class="sig-zone"><div class="sig-name">🚛 Recepción Cendis</div><div class="sig-btns" id="sig-cendis"><button class="sig-btn" onclick="setSig(this,'ok','sig-cendis')">✓ OK</button><button class="sig-btn" onclick="setSig(this,'warn','sig-cendis')">⚠ Débil</button><button class="sig-btn" onclick="setSig(this,'bad','sig-cendis')">✗ Sin señal</button></div></div>
+        <div class="sig-zone"><div class="sig-name">🖥️ Oficina / 2do piso</div><div class="sig-btns" id="sig-oficina"><button class="sig-btn" onclick="setSig(this,'ok','sig-oficina')">✓ OK</button><button class="sig-btn" onclick="setSig(this,'warn','sig-oficina')">⚠ Débil</button><button class="sig-btn" onclick="setSig(this,'bad','sig-oficina')">✗ Sin señal</button></div></div>
+        <div class="sig-zone"><div class="sig-name">🏪 Autopago más lejano</div><div class="sig-btns" id="sig-autopago"><button class="sig-btn" onclick="setSig(this,'ok','sig-autopago')">✓ OK</button><button class="sig-btn" onclick="setSig(this,'warn','sig-autopago')">⚠ Débil</button><button class="sig-btn" onclick="setSig(this,'bad','sig-autopago')">✗ Sin señal</button></div></div>
+      </div>
+    </div>
+    <div class="q-block q-grey">
+      <div class="q-label">📸 Fotos requeridas (marcar las tomadas)</div>
+      <div class="options" id="foto-opts">
+        <label class="option" onclick="toggle(this,'fotos')"><span class="opt-icon">📷</span>AP actual: vista frontal y ubicación<span class="opt-check">✓</span></label>
+        <label class="option" onclick="toggle(this,'fotos')"><span class="opt-icon">📷</span>Rack / patch panel / switch<span class="opt-check">✓</span></label>
+        <label class="option" onclick="toggle(this,'fotos')"><span class="opt-icon">📷</span>Zona bodega (donde va el nuevo AP)<span class="opt-check">✓</span></label>
+        <label class="option" onclick="toggle(this,'fotos')"><span class="opt-icon">📷</span>Cableado existente en bodega (¿hay Cat6?)<span class="opt-check">✓</span></label>
+      </div>
+    </div>
+    <button class="submit-btn" style="margin-bottom:0;font-size:13px;padding:10px" onclick="markDone('step2','num2')">✓ Recorrido completado</button>
+  </div>
+</div>
+
+<!-- PASO 3 -->
+<div class="step" id="step3">
+  <div class="step-header" onclick="toggleStep('step3')">
+    <div class="step-num" id="num3">3</div>
+    <div class="step-title-wrap">
+      <div class="step-title">Verificar AP actual e infraestructura <span class="step-role role-both">Campo + Especialista</span></div>
+      <div class="step-subtitle">Inventario físico · acceso al rack · estado del equipo</div>
+    </div>
+    <div class="step-chevron">›</div>
+  </div>
+  <div class="step-body">
+    <div class="q-block">
+      <div class="q-label">📍 Ubicación del AP instalado</div>
+      <div class="q-text">¿Dónde está ubicado actualmente el AP?</div>
+      <div class="options" id="ap-pos-opts">
+        <label class="option" onclick="selectOne(this,'ap-pos','sel-warn')"><span class="opt-icon">🏪</span>Piso de ventas (centro o entrada)<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'ap-pos','sel-warn')"><span class="opt-icon">🚪</span>Cerca a entrada o recepción<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'ap-pos','sel-green')"><span class="opt-icon">📐</span>Centro geométrico de la tienda<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'ap-pos','sel-red')"><span class="opt-icon">📦</span>Detrás de estantería o pared metálica<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'ap-pos','sel-red')"><span class="opt-icon">⬆️</span>Sobre falso techo cerrado<span class="opt-radio"></span></label>
+      </div>
+    </div>
+    <div class="q-block" style="border-left-color:var(--green)">
+      <div class="q-label" style="color:var(--green)">🔌 Cableado disponible</div>
+      <div class="q-text">¿Hay cable Cat6 disponible en la bodega o zona a cubrir?</div>
+      <div class="options" id="cable-opts">
+        <label class="option" onclick="selectOne(this,'cable','sel-green')"><span class="opt-icon">✅</span>Sí — hay Cat6 disponible o visible<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'cable','sel-warn')"><span class="opt-icon">🔍</span>No se sabe — requiere inspección adicional<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'cable','sel-red')"><span class="opt-icon">❌</span>No — se necesita cableado nuevo o solución mesh<span class="opt-radio"></span></label>
+      </div>
+    </div>
+    <div class="q-block q-grey">
+      <div class="q-label">🔧 Modelo del AP actual</div>
+      <div class="options" id="modelo-opts">
+        <label class="option" onclick="toggle(this,'modelo')"><span class="opt-icon">📡</span>Ubiquiti U6 Lite / U6 Lite-AC<span class="opt-check">✓</span></label>
+        <label class="option" onclick="toggle(this,'modelo')"><span class="opt-icon">📡</span>Ubiquiti U6+<span class="opt-check">✓</span></label>
+        <label class="option" onclick="toggle(this,'modelo')"><span class="opt-icon">⚠️</span>Cisco AIR-CAP1702I-A-K9 ← EoS ene 2027<span class="opt-check">✓</span></label>
+        <label class="option" onclick="toggle(this,'modelo')"><span class="opt-icon">⚠️</span>Cisco AIR-AP1832I-A-K9 ← EoS ene 2027<span class="opt-check">✓</span></label>
+        <label class="option" onclick="toggle(this,'modelo')"><span class="opt-icon">⚠️</span>Cisco AIR-AP2802I-A-K9 ← EoS ene 2027<span class="opt-check">✓</span></label>
+        <label class="option" onclick="toggle(this,'modelo')"><span class="opt-icon">📡</span>Otro modelo<span class="opt-check">✓</span></label>
+      </div>
+    </div>
+    <button class="submit-btn" style="margin-bottom:0;font-size:13px;padding:10px" onclick="markDone('step3','num3')">✓ Infraestructura verificada</button>
+  </div>
+</div>
+
+<!-- PASO 4 -->
+<div class="step" id="step4">
+  <div class="step-header" onclick="toggleStep('step4')">
+    <div class="step-num" id="num4">4</div>
+    <div class="step-title-wrap">
+      <div class="step-title">Validar WAN e identificar causa raíz <span class="step-role role-spec">Especialista</span></div>
+      <div class="step-subtitle">Descartar problema ISP antes de instalar hardware</div>
+    </div>
+    <div class="step-chevron">›</div>
+  </div>
+  <div class="step-body">
+    <div class="q-block q-warn">
+      <div class="q-label">⚠️ Regla de oro</div>
+      <div class="q-text">Si falla toda la tienda al mismo tiempo → es WAN (ISP). Si falla solo en zonas específicas → es cobertura WiFi interna.</div>
+    </div>
+    <div class="q-block">
+      <div class="q-label">🌐 Estado de la WAN</div>
+      <div class="options" id="wan-opts">
+        <label class="option" onclick="selectOne(this,'wan','sel-green')"><span class="opt-icon">✅</span>Ambos enlaces WAN activos con failover funcionando<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'wan','sel-warn')"><span class="opt-icon">⚠️</span>Solo 1 enlace activo (falta failover)<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'wan','sel-red')"><span class="opt-icon">🔴</span>Caídas totales de internet → problema es el ISP<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'wan','sel-warn')"><span class="opt-icon">🔍</span>No se puede verificar en esta visita<span class="opt-radio"></span></label>
+      </div>
+    </div>
+    <div class="q-block">
+      <div class="q-label">🔁 Causa raíz principal</div>
+      <div class="options" id="causa-opts">
+        <label class="option" onclick="selectOne(this,'causa','sel-red')"><span class="opt-icon">📡</span>Cobertura WiFi interna insuficiente (zonas sin señal)<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'causa','sel-warn')"><span class="opt-icon">⚙️</span>Config incorrecta (canal, potencia, SSID, VLAN)<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'causa','sel-warn')"><span class="opt-icon">📶</span>Interferencia RF con APs vecinos (CC)<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'causa','sel-red')"><span class="opt-icon">🌐</span>Problema de ISP / WAN inestable<span class="opt-radio"></span></label>
+        <label class="option" onclick="selectOne(this,'causa','selected')"><span class="opt-icon">🔀</span>Combinación de causas<span class="opt-radio"></span></label>
+      </div>
+    </div>
+    <textarea class="field-note" id="wan-nota" placeholder="Notas: latencia medida, % uptime ISP, canales detectados en espectro RF…"></textarea>
+    <button class="submit-btn" style="margin-top:10px;margin-bottom:0;font-size:13px;padding:10px" onclick="markDone('step4','num4')">✓ WAN y causa raíz validadas</button>
+  </div>
+</div>
+
+<!-- PASO 5 -->
+<div class="step" id="step5">
+  <div class="step-header" onclick="toggleStep('step5')">
+    <div class="step-num" id="num5">5</div>
+    <div class="step-title-wrap">
+      <div class="step-title">Conclusión y plan de acción <span class="step-role role-both">Campo + Especialista</span></div>
+      <div class="step-subtitle">Definir cantidad de APs · ubicación · acción inmediata</div>
+    </div>
+    <div class="step-chevron">›</div>
+  </div>
+  <div class="step-body">
+    <div class="conclusion">
+      <h3>📡 ¿Cuántos APs necesita esta tienda?</h3>
+      <div class="ap-rec">
+        <label>Seleccionar número de APs recomendados</label>
+        <div class="ap-choice-row">
+          <button class="ap-choice" id="ap1-btn" onclick="selectAP(1)"><span class="ap-n">1</span><span class="ap-l">Ajuste config</span></button>
+          <button class="ap-choice" id="ap2-btn" onclick="selectAP(2)"><span class="ap-n">2</span><span class="ap-l">Tienda estándar</span></button>
+          <button class="ap-choice" id="ap3-btn" onclick="selectAP(3)"><span class="ap-n">3</span><span class="ap-l">Tienda grande</span></button>
+        </div>
+        <div class="ap-location-list" style="margin-top:14px">
+          <div style="font-size:11px;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Ubicación de cada AP</div>
+          <div class="ap-loc-row"><span class="ap-loc-badge">AP 1</span><input class="ap-loc-input" id="loc1" placeholder="Ej: Piso de ventas — centro del local"></div>
+          <div class="ap-loc-row" id="loc2-row" style="display:none"><span class="ap-loc-badge">AP 2</span><input class="ap-loc-input" id="loc2" placeholder="Ej: Bodega — techo sobre zona de recepción"></div>
+          <div class="ap-loc-row" id="loc3-row" style="display:none"><span class="ap-loc-badge">AP 3</span><input class="ap-loc-input" id="loc3" placeholder="Ej: Farmacia o Recepción Cendis"></div>
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="concl-grid">
+          <div class="concl-field"><label>¿Requiere cableado nuevo?</label><select id="c-cable"><option value="">Seleccionar</option><option>No — Cat6 disponible</option><option>Sí — tramo corto (&lt; 15m)</option><option>Sí — instalación completa</option><option>Solución Mesh (sin cable)</option></select></div>
+          <div class="concl-field"><label>¿Requiere reemplazo AP?</label><select id="c-reemplazo"><option value="">Seleccionar</option><option>No — mantener AP actual</option><option>Sí — EoS 2027 (Cisco)</option><option>Sí — falla de hardware</option></select></div>
+          <div class="concl-field"><label>Prioridad de ejecución</label><select id="c-prio"><option value="">Seleccionar</option><option>🔴 Urgente — esta semana</option><option>🟡 Alta — próximas 2–4 semanas</option><option>🔵 Media — próximo mes</option><option>🟢 Baja — mantenimiento trimestral</option></select></div>
+          <div class="concl-field"><label>Causa principal confirmada</label><select id="c-causa"><option value="">Seleccionar</option><option>Cobertura insuficiente (1 AP)</option><option>AP mal ubicado</option><option>Problema de ISP / WAN</option><option>Config / canales / VLAN</option><option>Combinación de causas</option></select></div>
+          <div class="concl-field concl-full"><label>Acción inmediata</label><input type="text" id="c-accion" placeholder="Ej: Instalar AP en bodega — coordinado con Operaciones para el martes"></div>
+          <div class="concl-field concl-full"><label>Notas finales del especialista</label><textarea class="field-note" id="c-notas" style="background:rgba(255,255,255,.92);color:var(--ink)" placeholder="Canales recomendados, modelo de AP sugerido, materiales, escalación a ISP…"></textarea></div>
+        </div>
+      </div>
+    </div>
+    <div class="send-status" id="send-status"></div>
+    <button class="submit-btn green-btn" onclick="finalize()">✅ Guardar visita y enviar a Google Sheets</button>
+  </div>
+</div>
+
+<!-- RESULT CARD -->
+<div class="result-card" id="result-card">
+  <h3>✅ Visita registrada correctamente</h3>
+  <div id="result-rows"></div>
+  <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+    <a id="sheet-open-link" href="#" target="_blank" class="sheet-link" style="display:none">📊 Ver Google Sheets</a>
+    <button class="submit-btn" style="background:#333;margin-bottom:0;font-size:13px;padding:10px;flex:1;min-width:140px" onclick="window.print()">🖨️ Imprimir / PDF</button>
+    <button class="submit-btn" style="margin-bottom:0;font-size:13px;padding:10px;flex:1;min-width:140px" onclick="resetForm()">🔄 Nueva visita</button>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ─── CONFIG ───
+function loadCfg(){
+  const url=localStorage.getItem('ftd_sheet_url')||'';
+  const view=localStorage.getItem('ftd_sheet_view')||'';
+  document.getElementById('sheet-url-input').value=url;
+  document.getElementById('sheet-view-input').value=view;
+  updateBanner(url);
+}
+function saveCfg(){
+  const url=document.getElementById('sheet-url-input').value.trim();
+  const view=document.getElementById('sheet-view-input').value.trim();
+  localStorage.setItem('ftd_sheet_url',url);
+  localStorage.setItem('ftd_sheet_view',view);
+  updateBanner(url);
+  closeCfg();
+  if(url){alert('✅ Configuración guardada. Las próximas visitas se enviarán automáticamente a Google Sheets.');}
+}
+function validateUrl(input){
+  if(input.value.includes('script.google.com'))input.classList.add('ok');
+  else input.classList.remove('ok');
+}
+function updateBanner(url){
+  const badge=document.getElementById('setup-badge');
+  const banner=document.getElementById('setup-banner');
+  if(url&&url.includes('script.google.com')){
+    badge.textContent='✓ Conectado con Google Sheets';badge.className='setup-badge ok';
+    banner.style.background='linear-gradient(135deg,#1a5c33,var(--green))';
+  }else{
+    badge.textContent='Sin configurar — toca para configurar';badge.className='setup-badge';
+    banner.style.background='linear-gradient(135deg,#7a5400,var(--warn))';
+  }
+}
+function openCfg(){document.getElementById('cfg-overlay').classList.add('open');}
+function closeCfg(){document.getElementById('cfg-overlay').classList.remove('open');}
+function closeCfgOut(e){if(e.target===document.getElementById('cfg-overlay'))closeCfg();}
+function copyCfgCode(){
+  const box=document.getElementById('gs-code-box');
+  box.classList.add('copied');setTimeout(()=>box.classList.remove('copied'),2000);
+}
+
+// ─── STEP INTERACTIONS ───
+function toggleStep(id){document.getElementById(id).classList.toggle('open');}
+function toggle(el,group){el.classList.toggle('selected');updateProgress();}
+function selectOne(el,group,cls){
+  const parent=el.closest('.options');
+  parent.querySelectorAll('.option').forEach(o=>o.classList.remove('sel-red','sel-green','sel-warn','sel-single','selected'));
+  el.classList.add(['sel-red','sel-green','sel-warn'].includes(cls)?cls:'sel-single');
+  updateProgress();
+}
+function setSig(btn,type,rowId){
+  const row=document.getElementById(rowId);
+  row.querySelectorAll('.sig-btn').forEach(b=>b.classList.remove('ok','warn','bad'));
+  btn.classList.add(type);updateProgress();
+}
+function selectAP(n){
+  ['ap1-btn','ap2-btn','ap3-btn'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('ap'+n+'-btn').classList.add('active');
+  document.getElementById('loc2-row').style.display=n>=2?'flex':'none';
+  document.getElementById('loc3-row').style.display=n>=3?'flex':'none';
+}
+function markDone(stepId,numId){
+  const s=document.getElementById(stepId),n=document.getElementById(numId);
+  s.classList.add('done');n.textContent='✓';s.classList.remove('open');
+  const steps=['step1','step2','step3','step4','step5'];
+  const i=steps.indexOf(stepId);
+  if(i<steps.length-1)document.getElementById(steps[i+1]).classList.add('open');
+  updateProgress();
+}
+function updateProgress(){
+  const done=document.querySelectorAll('.step.done').length;
+  document.getElementById('prog-bar').style.width=(done/5*100)+'%';
+  document.getElementById('prog-txt').textContent=done+' / 5 pasos completados';
+}
+
+// ─── COLLECT DATA ───
+function collectData(){
+  const getSelText=(opts,multi)=>{
+    const sel=[...document.querySelectorAll('#'+opts+' .option.selected,#'+opts+' .option.sel-red,#'+opts+' .option.sel-green,#'+opts+' .option.sel-warn,#'+opts+' .option.sel-single')];
+    return sel.map(o=>o.innerText.replace(/[✓✕]/g,'').trim()).join(multi?', ':' / ')||'—';
+  };
+  const getSig=(id)=>{const b=document.querySelector('#'+id+' .sig-btn.ok,#'+id+' .sig-btn.warn,#'+id+' .sig-btn.bad');return b?b.textContent.trim():'—';};
+  const apActive=['ap1-btn','ap2-btn','ap3-btn'].findIndex(id=>document.getElementById(id).classList.contains('active'));
+  return{
+    tienda:document.getElementById('m-tienda').value||'',
+    codigo:document.getElementById('m-codigo').value||'',
+    fecha:document.getElementById('m-fecha').value||'',
+    tecnico:document.getElementById('m-tecnico').value||'',
+    especialista:document.getElementById('m-esp').value||'',
+    gerente:document.getElementById('m-gerente').value||'',
+    hh_zonas:getSelText('q1-opts',true),
+    hh_notas:document.getElementById('q1-nota').value||'',
+    autopago_estado:getSelText('q2-opts',false),
+    autopago_hora:getSelText('q2b-opts',true),
+    sig_piso:getSig('sig-piso'),sig_bodega:getSig('sig-bodega'),
+    sig_farmacia:getSig('sig-farmacia'),sig_cendis:getSig('sig-cendis'),
+    sig_oficina:getSig('sig-oficina'),sig_autopago:getSig('sig-autopago'),
+    fotos:getSelText('foto-opts',true),
+    ap_posicion:getSelText('ap-pos-opts',false),
+    cable:getSelText('cable-opts',false),
+    ap_modelo:getSelText('modelo-opts',true),
+    wan_estado:getSelText('wan-opts',false),
+    causa_raiz:getSelText('causa-opts',false),
+    notas_wan:document.getElementById('wan-nota').value||'',
+    ap_cantidad:(apActive+1)||'—',
+    loc1:document.getElementById('loc1').value||'',
+    loc2:document.getElementById('loc2').value||'',
+    loc3:document.getElementById('loc3').value||'',
+    req_cable:document.getElementById('c-cable').value||'',
+    req_reemplazo:document.getElementById('c-reemplazo').value||'',
+    prioridad:document.getElementById('c-prio').value||'',
+    causa_confirmada:document.getElementById('c-causa').value||'',
+    accion_inmediata:document.getElementById('c-accion').value||'',
+    notas_finales:document.getElementById('c-notas').value||''
+  };
+}
+
+// ─── FINALIZE + SEND ───
+async function finalize(){
+  markDone('step5','num5');
+  const data=collectData();
+  const sheetUrl=localStorage.getItem('ftd_sheet_url')||'';
+  const viewUrl=localStorage.getItem('ftd_sheet_view')||'';
+  const status=document.getElementById('send-status');
+
+  if(sheetUrl&&sheetUrl.includes('script.google.com')){
+    status.className='send-status sending';
+    status.innerHTML='<span class="spin">⏳</span> Enviando a Google Sheets…';
+    status.style.display='flex';
+    try{
+      // Google Apps Script no acepta fetch directo por CORS — usar no-cors e imagen como fallback
+      const encoded=encodeURIComponent(JSON.stringify(data));
+      await fetch(sheetUrl,{method:'POST',body:JSON.stringify(data),headers:{'Content-Type':'application/json'},mode:'no-cors'});
+      status.className='send-status success';
+      status.innerHTML='✅ Visita enviada y guardada en Google Sheets.';
+    }catch(err){
+      status.className='send-status error';
+      status.innerHTML='⚠️ No se pudo enviar automáticamente. Guarda el resumen en PDF como respaldo.';
+    }
+  }else{
+    status.className='send-status error';
+    status.innerHTML='⚙️ Google Sheets no configurado. Guarda el resumen como PDF. <button onclick="openCfg()" style="background:none;border:none;color:var(--red);font-weight:700;cursor:pointer;text-decoration:underline">Configurar ahora</button>';
+    status.style.display='flex';
+  }
+
+  // Show result card
+  const apN=data.ap_cantidad;
+  const rows=[
+    ['Tienda',data.tienda||'—'],['Código',data.codigo||'—'],['Fecha',data.fecha||'—'],
+    ['Técnico campo',data.tecnico||'—'],['Especialista Telco',data.especialista||'—'],
+    ['Gerente',data.gerente||'—'],
+    ['HH — zonas problemáticas',data.hh_zonas],
+    ['Autopago — estado',data.autopago_estado],
+    ['APs recomendados',apN+' AP(s)'],
+    ['Ubicación AP 1',data.loc1||'—'],
+    ...(apN>=2&&data.loc2?[['Ubicación AP 2',data.loc2]]:[]),
+    ...(apN>=3&&data.loc3?[['Ubicación AP 3',data.loc3]]:[]),
+    ['Cableado requerido',data.req_cable||'—'],
+    ['Reemplazo AP',data.req_reemplazo||'—'],
+    ['Estado WAN',data.wan_estado],
+    ['Causa confirmada',data.causa_confirmada||'—'],
+    ['Prioridad',data.prioridad||'—'],
+    ['Acción inmediata',data.accion_inmediata||'—'],
+    ['Notas finales',data.notas_finales||'—'],
+  ];
+  document.getElementById('result-rows').innerHTML=rows.map(([l,v])=>`<div class="result-row"><span class="rl">${l}</span><span class="rv">${v}</span></div>`).join('');
+  if(viewUrl){
+    const lnk=document.getElementById('sheet-open-link');
+    lnk.href=viewUrl;lnk.style.display='flex';
+  }
+  const rc=document.getElementById('result-card');
+  rc.classList.add('show');
+  rc.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ─── RESET ───
+function resetForm(){
+  if(!confirm('¿Iniciar una nueva visita? Se borrarán los datos del formulario actual.'))return;
+  location.reload();
+}
+
+// ─── INIT ───
+document.getElementById('m-fecha').valueAsDate=new Date();
+loadCfg();
+</script>
+</body>
+</html>
