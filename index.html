@@ -218,12 +218,12 @@
 </div>
 
 <!-- SETUP BANNER -->
-<div class="setup-banner" id="setup-banner" onclick="openCfg()">
+<div class="setup-banner" id="setup-banner" onclick="openCfg()" style="background:linear-gradient(135deg,#1a5c33,#00963a)">
   <div class="setup-icon">⚠️</div>
   <div class="setup-text">
     <h4>Conectar con Google Sheets para guardar respuestas</h4>
     <p>Las visitas se guardan solo localmente. Toca aquí para configurar el envío automático a tu hoja de cálculo.</p>
-    <span class="setup-badge" id="setup-badge">Sin configurar — toca para configurar</span>
+    <span class="setup-badge ok" id="setup-badge">✓ Conectado con Google Sheets — Farmatodo</span>
   </div>
 </div>
 
@@ -270,7 +270,7 @@
           <p>Copia la URL que termina en <code>/exec</code> y pégala en el campo de abajo.</p>
           <div class="cfg-field" style="margin-top:10px">
             <label>URL del Web App de Google Apps Script</label>
-            <input type="text" id="sheet-url-input" placeholder="https://script.google.com/macros/s/…/exec" oninput="validateUrl(this)">
+            <input type="text" id="sheet-url-input" class="ok" value="https://script.google.com/a/macros/farmatodo.com/s/AKfycbxyv9AHTboTLWIZdK7yGwkBeI4Msn-dc8kiXwulJ4WMpgu-INImXeYUlrkcZUX2pBA/exec" readonly style="opacity:.7;cursor:not-allowed">
           </div>
           <div class="cfg-field" style="margin-top:10px">
             <label>URL de la Google Sheet (para abrir desde el resumen)</label>
@@ -539,22 +539,17 @@
 </div><!-- /content -->
 
 <script>
-// ─── CONFIG ───
+// ─── CONFIG — URLs pre-configuradas ───
+const SHEET_URL  = 'https://script.google.com/a/macros/farmatodo.com/s/AKfycbxyv9AHTboTLWIZdK7yGwkBeI4Msn-dc8kiXwulJ4WMpgu-INImXeYUlrkcZUX2pBA/exec';
+const SHEET_VIEW = ''; // pegar aquí el link de la Sheet para el botón "Ver Sheets"
+
 function loadCfg(){
-  const url=localStorage.getItem('ftd_sheet_url')||'';
-  const view=localStorage.getItem('ftd_sheet_view')||'';
-  document.getElementById('sheet-url-input').value=url;
-  document.getElementById('sheet-view-input').value=view;
-  updateBanner(url);
+  // URLs ya hardcodeadas — no se necesita localStorage
+  updateBanner(SHEET_URL);
 }
 function saveCfg(){
-  const url=document.getElementById('sheet-url-input').value.trim();
-  const view=document.getElementById('sheet-view-input').value.trim();
-  localStorage.setItem('ftd_sheet_url',url);
-  localStorage.setItem('ftd_sheet_view',view);
-  updateBanner(url);
   closeCfg();
-  if(url){alert('✅ Configuración guardada. Las próximas visitas se enviarán automáticamente a Google Sheets.');}
+  alert('✅ Las URLs ya están configuradas en el archivo. Contacta al administrador para cambiarlas.');
 }
 function validateUrl(input){
   if(input.value.includes('script.google.com'))input.classList.add('ok');
@@ -564,10 +559,10 @@ function updateBanner(url){
   const badge=document.getElementById('setup-badge');
   const banner=document.getElementById('setup-banner');
   if(url&&url.includes('script.google.com')){
-    badge.textContent='✓ Conectado con Google Sheets';badge.className='setup-badge ok';
+    badge.textContent='✓ Conectado con Google Sheets — Farmatodo';badge.className='setup-badge ok';
     banner.style.background='linear-gradient(135deg,#1a5c33,var(--green))';
   }else{
-    badge.textContent='Sin configurar — toca para configurar';badge.className='setup-badge';
+    badge.textContent='Sin configurar';badge.className='setup-badge';
     banner.style.background='linear-gradient(135deg,#7a5400,var(--warn))';
   }
 }
@@ -659,8 +654,8 @@ function collectData(){
 async function finalize(){
   markDone('step5','num5');
   const data=collectData();
-  const sheetUrl=localStorage.getItem('ftd_sheet_url')||'';
-  const viewUrl=localStorage.getItem('ftd_sheet_view')||'';
+  const sheetUrl=SHEET_URL;
+  const viewUrl=SHEET_VIEW;
   const status=document.getElementById('send-status');
 
   if(sheetUrl&&sheetUrl.includes('script.google.com')){
